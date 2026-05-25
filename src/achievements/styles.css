@@ -1,0 +1,209 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   ADO injects its own CSS vars into the iframe when SDK.init({ applyTheme: true })
+   is used. We map our tokens to those vars, falling back to explicit values so
+   the stylesheet also works standalone (prefers-color-scheme handles that case).
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* == Light tokens (default / ADO-vars fallback) ============================ */
+:root {
+  --c-bg-page:        var(--background-color,         #f3f2f1);
+  --c-bg-content:     var(--content-background-color,  #ffffff);
+  --c-bg-hover:       var(--neutral-4,                 #f3f2f1);
+  --c-border:         var(--separator-line,             #edebe9);
+  --c-text:           var(--text-primary-color,         #323130);
+  --c-text-secondary: var(--text-secondary-color,       #605e5c);
+  --c-text-disabled:  var(--text-disabled-color,        #a19f9d);
+  --c-primary:        var(--communication-foreground,   #0078d4);
+  --c-primary-hover:  #106ebe;
+  --c-primary-active: #005a9e;
+
+  --font:      "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+  --font-xs:   11px;
+  --font-sm:   12px;
+  --font-base: 14px;
+  --font-lg:   16px;
+  --font-xl:   20px;
+  --radius:    2px;
+  --shadow:    0 1.6px 3.6px rgba(0,0,0,.13), 0 .3px .9px rgba(0,0,0,.11);
+}
+
+/* == Dark override (OS preference; used when ADO vars are absent) =========== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c-bg-page:        #1b1a19;
+    --c-bg-content:     #252423;
+    --c-bg-hover:       #292827;
+    --c-border:         #3b3a39;
+    --c-text:           #f3f2f1;
+    --c-text-secondary: #c8c6c4;
+    --c-text-disabled:  #797775;
+    --c-primary:        #4db4ff;
+    --c-primary-hover:  #6ec0ff;
+    --c-primary-active: #2aa0ff;
+    --shadow:           0 1.6px 3.6px rgba(0,0,0,.4), 0 .3px .9px rgba(0,0,0,.3);
+  }
+}
+
+/* == Reset ================================================================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  font-size: var(--font-base);
+  color: var(--c-text);
+  background: var(--c-bg-page);
+}
+
+/* == Hub shell ============================================================== */
+.hub-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--c-bg-page);
+}
+
+/* == Hub header ============================================================= */
+.hub-header {
+  background: var(--c-bg-content);
+  border-bottom: 1px solid var(--c-border);
+  padding: 0 24px;
+  flex-shrink: 0;
+}
+
+.hub-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+}
+
+.hub-title-row h1 {
+  font-size: var(--font-xl);
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+/* == Tab bar ================================================================ */
+.tab-bar { display: flex; list-style: none; }
+
+.tab-bar__item {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: var(--font-base);
+  font-weight: 400;
+  color: var(--c-text-secondary);
+  white-space: nowrap;
+  user-select: none;
+  border-bottom: 2px solid transparent;
+  transition: color .1s, border-color .1s, background .1s;
+}
+.tab-bar__item:hover { color: var(--c-text); background: var(--c-bg-hover); }
+.tab-bar__item.active { color: var(--c-primary); font-weight: 600; border-bottom-color: var(--c-primary); }
+
+/* == Hub content ============================================================ */
+.hub-content { flex: 1; overflow-y: auto; padding: 20px 24px; }
+
+/* == Toolbar ================================================================ */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.toolbar__subtitle { font-size: var(--font-base); color: var(--c-text-secondary); }
+
+/* == Button ================================================================= */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  font-family: var(--font);
+  font-size: var(--font-base);
+  border-radius: var(--radius);
+  cursor: pointer;
+  border: 1px solid var(--c-border);
+  background: var(--c-bg-content);
+  color: var(--c-text);
+  transition: background .1s, border-color .1s;
+}
+.btn:hover   { background: var(--c-bg-hover); border-color: var(--c-text-disabled); }
+.btn:active  { filter: brightness(.95); }
+.btn:disabled { opacity: .5; cursor: default; pointer-events: none; }
+
+.btn--primary { background: var(--c-primary); border-color: var(--c-primary); color: #fff; }
+.btn--primary:hover  { background: var(--c-primary-hover); border-color: var(--c-primary-hover); }
+.btn--primary:active { background: var(--c-primary-active); }
+
+/* == Badge grid ============================================================= */
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.badge-card {
+  background: var(--c-bg-content);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  padding: 16px 12px 14px;
+  text-align: center;
+  position: relative;
+  transition: box-shadow .15s;
+}
+.badge-card:hover  { box-shadow: var(--shadow); }
+.badge-card.locked { opacity: .4; filter: grayscale(1); }
+
+.badge-card .badge-icon  { font-size: 2.6rem; line-height: 1; margin-bottom: 8px; }
+.badge-card .badge-name  { font-weight: 600; font-size: var(--font-base); margin-bottom: 3px; color: var(--c-text); }
+.badge-card .badge-desc  { font-size: var(--font-sm); color: var(--c-text-secondary); line-height: 1.4; }
+.badge-card .badge-tier  { position: absolute; top: 6px; right: 8px; font-size: .95rem; }
+.badge-card .badge-value { margin-top: 6px; font-size: var(--font-sm); color: var(--c-primary); font-weight: 600; }
+
+/* == Leaderboard table ====================================================== */
+.ado-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--c-bg-content);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+}
+.ado-table thead tr { background: var(--c-bg-page); border-bottom: 1px solid var(--c-border); }
+.ado-table th {
+  padding: 8px 12px;
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: var(--c-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  text-align: left;
+}
+.ado-table td { padding: 10px 12px; border-bottom: 1px solid var(--c-border); font-size: var(--font-base); color: var(--c-text); }
+.ado-table tbody tr:last-child td { border-bottom: none; }
+.ado-table tbody tr:hover td      { background: var(--c-bg-hover); }
+
+.rank-badge        { font-weight: 700; font-size: 1.05rem; }
+.rank-badge.gold   { color: #f5a623; }
+.rank-badge.silver { color: var(--c-text-secondary); }
+.rank-badge.bronze { color: #b87333; }
+
+/* == Status / loading / error =============================================== */
+.status-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  color: var(--c-text-secondary);
+  gap: 12px;
+  text-align: center;
+}
+.status-box .spinner    { font-size: 2rem; animation: spin .8s linear infinite; display: inline-block; }
+.status-box .error-icon { font-size: 2rem; }
+.status-box p           { font-size: var(--font-base); max-width: 480px; }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}

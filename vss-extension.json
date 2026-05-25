@@ -1,0 +1,37 @@
+{
+  "manifestVersion": 1,
+  "id": "azure-devops-achievements",
+  "name": "Achievements",
+  "version": "0.0.2",
+  "publisher": "jerone",
+  "targets": [{ "id": "Microsoft.VisualStudio.Services" }],
+  "description": "Earn achievements by performing tasks in Azure DevOps!",
+  "categories": ["Azure Boards", "Azure Repos", "Azure Pipelines"],
+  "tags": ["achievements", "gamification", "profile", "leaderboard"],
+  "icons": { "default": "images/logo.png" },
+  "scopes": [
+    "vso.build",
+    "vso.code",
+    "vso.work",
+    "vso.test",
+    "vso.profile",
+    "vso.project"
+  ],
+  "contributions": [
+    {
+      "id": "achievements-hub",
+      "type": "ms.vss-web.hub",
+      "description": "Earn achievements and view your team leaderboard",
+      "targets": ["ms.vss-web.home-hub-group"],
+      "properties": {
+        "name": "Achievements",
+        "order": 100,
+        "uri": "dist/hub.html"
+      }
+    }
+  ],
+  "files": [
+    { "path": "dist", "addressable": true },
+    { "path": "images", "addressable": true }
+  ]
+}

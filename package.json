@@ -1,0 +1,34 @@
+{
+  "name": "azure-devops-achievements",
+  "version": "0.0.2",
+  "description": "Azure DevOps Achievements Extension",
+  "scripts": {
+    "build":     "webpack --mode production",
+    "build:dev": "webpack --mode development",
+    "watch":     "webpack --mode development --watch",
+    "serve": "webpack-dev-server --mode development",
+    "package":     "tfx extension create  --manifest-globs vss-extension.json",
+    "package:dev": "tfx extension create  --manifest-globs vss-extension.dev.json",
+    "publish:dev": "tfx extension publish --manifest-globs vss-extension.dev.json --share-with jeronevw",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "azure-devops-extension-api": "^4.0.0",
+    "azure-devops-extension-sdk": "^3.0.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "devDependencies": {
+    "@types/react": "^17.0.80",
+    "@types/react-dom": "^17.0.25",
+    "css-loader": "^6.11.0",
+    "rimraf": "^5.0.10",
+    "style-loader": "^3.3.4",
+    "tfx-cli": "^0.23.1",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.8.3",
+    "webpack": "^5.99.9",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.0"
+  }
+}
