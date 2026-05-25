@@ -70,7 +70,7 @@ export async function gatherMetrics(
 
     for (const repo of repos) {
       // PRs created by this user that are completed (merged)
-      const prs = await git.getPullRequests(repo.id!, {
+      const prs = await git.getPullRequests(repo.id, {
         creatorId: userId,
         status: 3, // Completed
       } as GitPullRequestSearchCriteria);
@@ -84,7 +84,7 @@ export async function gatherMetrics(
 
         // Pair programmer: check commit co-authors
         if (!hasPairCommit) {
-          const commits = await git.getPullRequestCommits(repo.id!, pr.pullRequestId!);
+          const commits = await git.getPullRequestCommits(repo.id, pr.pullRequestId);
           for (const commit of commits) {
             if ((commit.comment ?? "").toLowerCase().includes("co-authored-by:")) {
               hasPairCommit = true;
@@ -95,7 +95,7 @@ export async function gatherMetrics(
       }
 
       // PR reviews by this user
-      const reviewed = await git.getPullRequests(repo.id!, {
+      const reviewed = await git.getPullRequests(repo.id, {
         reviewerId: userId,
         status: 3,
       } as GitPullRequestSearchCriteria);
@@ -103,7 +103,7 @@ export async function gatherMetrics(
 
       // PR comments by this user (threads)
       for (const pr of [...prs, ...reviewed]) {
-        const threads = await git.getThreads(repo.id!, pr.pullRequestId!);
+        const threads = await git.getThreads(repo.id, pr.pullRequestId);
         for (const thread of threads) {
           const userComments = (thread.comments ?? []).filter(
             (c) => c.author?.id === userId && !c.isDeleted
@@ -123,8 +123,7 @@ export async function gatherMetrics(
     const wiql = {
       query: `SELECT [System.Id], [System.CreatedDate], [System.State], [System.WorkItemType], [Microsoft.VSTS.Common.ClosedDate]
               FROM WorkItems
-              WHERE [System.AssignedTo] = @Me
-                AND [System.TeamProject] = '${projectId}'`,
+              WHERE [System.AssignedTo] = @Me`,
     };
     const wiqlResult = await wit.queryByWiql(wiql, projectId);
     const workItemRefs = wiqlResult.workItems ?? [];
@@ -168,25 +167,12 @@ export async function gatherMetrics(
     // ── Builds ────────────────────────────────────────────────────────────
     const builds = await build.getBuilds(
       projectId,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      userId
+      undefined, // definitions
+      undefined, // queues
+      undefined, // buildNumber
+      undefined, // minTime
+      undefined, // maxTime
+      userId     // requestedFor
     );
 
     const successful = builds.filter((b) => b.result === 2); // 2 = succeeded
@@ -293,11 +279,14 @@ export async function saveAchievements(
 
 /** High-level helper: refresh achievements for the current user */
 export async function refreshAchievements(): Promise<EarnedAchievement[]> {
+  console.log("[Achievements] Refreshing achievements...");
   await SDK.ready();
   const user = SDK.getUser();
+  console.log("[Achievements] Current user:", user);
   const projectId = await getProjectId();
-
+  console.log("[Achievements] Current project ID:", projectId);
   const metrics = await gatherMetrics(user.id, projectId);
+  console.log("[Achievements] Gathered metrics:", metrics);
   const earned = evaluateAchievements(metrics);
   await saveAchievements(user.id, earned);
   return earned;

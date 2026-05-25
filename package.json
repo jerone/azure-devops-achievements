@@ -6,7 +6,7 @@
     "build":     "webpack --mode production",
     "build:dev": "webpack --mode development",
     "watch":     "webpack --mode development --watch",
-    "serve": "webpack-dev-server --mode development",
+    "serve":     "webpack serve --mode development",
     "package":     "tfx extension create  --manifest-globs vss-extension.json",
     "package:dev": "tfx extension create  --manifest-globs vss-extension.dev.json",
     "publish:dev": "tfx extension publish --manifest-globs vss-extension.dev.json --share-with jeronevw",
