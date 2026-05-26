@@ -5,6 +5,8 @@ import { Card } from "azure-devops-ui/Card";
 import { TitleSize } from "azure-devops-ui/Header";
 import { MessageCard, MessageCardSeverity } from "azure-devops-ui/MessageCard";
 import { Spinner, SpinnerSize } from "azure-devops-ui/Spinner";
+import { VssPersona } from "azure-devops-ui/VssPersona";
+import { getAvatarUrl } from "../../achievements/avatarUrl";
 import { ACHIEVEMENTS } from "../../achievements/achievements";
 import { serializeError } from "../../achievements/serializeError";
 import { EarnedAchievement } from "../../achievements/models/EarnedAchievement";
@@ -28,6 +30,7 @@ export const MyAchievementsTab: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userName, setUserName] = useState("");
+  const [userImageUrl, setUserImageUrl] = useState<string | undefined>();
 
   useEffect(() => {
     (async () => {
@@ -35,6 +38,7 @@ export const MyAchievementsTab: React.FC = () => {
         await SDK.ready();
         const user = SDK.getUser();
         setUserName(user.displayName ?? user.name ?? "You");
+        setUserImageUrl(await getAvatarUrl(user.descriptor));
 
         const cached = await loadCachedAchievements(user.id);
         if (cached) {
@@ -89,10 +93,18 @@ export const MyAchievementsTab: React.FC = () => {
   return (
     <>
       <div className="flex-row flex-center justify-space-between" style={{ marginBottom: 16 }}>
-        <span className="body-m secondary-text">
-          {userName && <strong className="primary-text">{userName} · </strong>}
-          {earned.length} of {ACHIEVEMENTS.length} achievements unlocked
-        </span>
+        <div className="flex-row flex-center" style={{ gap: 8 }}>
+          <VssPersona
+            imageUrl={userImageUrl}
+            displayName={userName}
+            size="small"
+            suppressPersonaCard
+          />
+          <span className="body-m secondary-text">
+            {userName && <strong className="primary-text">{userName} · </strong>}
+            {earned.length} of {ACHIEVEMENTS.length} achievements unlocked
+          </span>
+        </div>
         <Button
           text={refreshing ? "Refreshing…" : "Refresh"}
           iconProps={{ iconName: "Refresh" }}

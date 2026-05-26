@@ -8,6 +8,7 @@ import {
 import { CoreRestClient } from "azure-devops-extension-api/Core";
 import { MessageCard, MessageCardSeverity } from "azure-devops-ui/MessageCard";
 import { Spinner, SpinnerSize } from "azure-devops-ui/Spinner";
+import { VssPersona } from "azure-devops-ui/VssPersona";
 import { ZeroData } from "azure-devops-ui/ZeroData";
 import {
   Table,
@@ -17,6 +18,7 @@ import {
 } from "azure-devops-ui/Table";
 import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
 import { ACHIEVEMENTS } from "../../achievements/achievements";
+import { getAvatarUrl } from "../../achievements/avatarUrl";
 import { serializeError } from "../../achievements/serializeError";
 import { EarnedAchievement } from "../../achievements/models/EarnedAchievement";
 import {
@@ -27,6 +29,7 @@ import {
 interface TeamMember {
   id: string;
   displayName: string;
+  imageUrl?: string;
   achievements: EarnedAchievement[];
 }
 
@@ -109,6 +112,9 @@ export const MyTeamTab: React.FC = () => {
             memberData.push({
               id: identity.id,
               displayName: identity.displayName ?? "Unknown",
+              imageUrl: identity.descriptor
+                ? await getAvatarUrl(identity.descriptor)
+                : undefined,
               achievements: cached ?? [],
             });
           }
@@ -163,13 +169,21 @@ export const MyTeamTab: React.FC = () => {
       name: "Member",
       width: -30,
       columnLayout: TableColumnLayout.none,
-      renderCell: (rowIndex, columnIndex, tableColumn, tableItem) => (
+      renderCell: (_rowIndex, columnIndex, tableColumn, tableItem) => (
         <SimpleTableCell
           key={`name-${tableItem.id}`}
           columnIndex={columnIndex}
           tableColumn={tableColumn}
         >
-          {tableItem.displayName}
+          <div className="flex-row flex-center" style={{ gap: 8 }}>
+            <VssPersona
+              imageUrl={tableItem.imageUrl}
+              displayName={tableItem.displayName}
+              size="extra-small"
+              suppressPersonaCard
+            />
+            <span>{tableItem.displayName}</span>
+          </div>
         </SimpleTableCell>
       ),
     },
