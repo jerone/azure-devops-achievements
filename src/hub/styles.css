@@ -1,0 +1,29 @@
+/* Badge grid — layout only; all colours/typography come from azure-devops-ui */
+
+#root { width: 100%; }
+
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.badge-card--locked {
+  opacity: 0.4;
+  filter: grayscale(1);
+}
+
+.badge-card__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 8px 4px 4px;
+  position: relative;
+}
+
+.badge-icon  { font-size: 2.6rem; line-height: 1; margin-bottom: 8px; }
+.badge-tier  { position: absolute; top: 0; right: 0; font-size: 1rem; }
+.badge-desc  { line-height: 1.4; margin-top: 4px; }
+.badge-value { margin-top: 6px; font-weight: 600; }
+

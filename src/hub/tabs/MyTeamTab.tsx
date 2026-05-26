@@ -6,9 +6,17 @@ import {
   IProjectPageService,
 } from "azure-devops-extension-api";
 import { CoreRestClient } from "azure-devops-extension-api/Core";
+import { MessageCard, MessageCardSeverity } from "azure-devops-ui/MessageCard";
+import { Spinner, SpinnerSize } from "azure-devops-ui/Spinner";
+import { ZeroData } from "azure-devops-ui/ZeroData";
 import {
-  ACHIEVEMENTS,
-} from "../../achievements/achievements";
+  Table,
+  ITableColumn,
+  SimpleTableCell,
+  TableColumnLayout,
+} from "azure-devops-ui/Table";
+import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
+import { ACHIEVEMENTS } from "../../achievements/achievements";
 import { serializeError } from "../../achievements/serializeError";
 import { EarnedAchievement } from "../../achievements/models/EarnedAchievement";
 import {
@@ -20,6 +28,46 @@ interface TeamMember {
   id: string;
   displayName: string;
   achievements: EarnedAchievement[];
+}
+
+function rankCell(
+  _rowIndex: number,
+  columnIndex: number,
+  tableColumn: ITableColumn<TeamMember>,
+  tableItem: TeamMember,
+  itemProvider: ArrayItemProvider<TeamMember>
+): JSX.Element {
+  const rank = (itemProvider as any).value.indexOf(tableItem) + 1;
+  const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `#${rank}`;
+  return (
+    <SimpleTableCell
+      key={`rank-${tableItem.id}`}
+      columnIndex={columnIndex}
+      tableColumn={tableColumn}
+    >
+      <span style={{ fontSize: "1.1rem" }}>{medal}</span>
+    </SimpleTableCell>
+  );
+}
+
+function badgesCell(
+  _rowIndex: number,
+  columnIndex: number,
+  tableColumn: ITableColumn<TeamMember>,
+  tableItem: TeamMember
+): JSX.Element {
+  const icons = tableItem.achievements
+    .map((e) => ACHIEVEMENTS.find((a) => a.id === e.achievementId)?.icon ?? "🏅")
+    .join(" ");
+  return (
+    <SimpleTableCell
+      key={`badges-${tableItem.id}`}
+      columnIndex={columnIndex}
+      tableColumn={tableColumn}
+    >
+      <span style={{ fontSize: "1.1rem", letterSpacing: 2 }}>{icons || "—"}</span>
+    </SimpleTableCell>
+  );
 }
 
 export const MyTeamTab: React.FC = () => {
@@ -49,7 +97,7 @@ export const MyTeamTab: React.FC = () => {
         for (const team of teams) {
           const teamMembers = await core.getTeamMembersWithExtendedProperties(
             projectId,
-            team.id!,
+            team.id,
             100
           );
           for (const tm of teamMembers) {
@@ -78,76 +126,89 @@ export const MyTeamTab: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="status-box">
-        <span className="spinner">⏳</span>
-        <p>Loading team leaderboard…</p>
+      <div className="flex-row justify-center" style={{ padding: 40 }}>
+        <Spinner size={SpinnerSize.large} label="Loading team leaderboard…" />
       </div>
     );
   }
 
   if (error) {
+    return <MessageCard severity={MessageCardSeverity.Error}>{error}</MessageCard>;
+  }
+
+  if (members.length === 0) {
     return (
-      <div className="status-box">
-        <span className="error-icon">⚠️</span>
-        <p>{error}</p>
-      </div>
+      <ZeroData
+        primaryText="No achievement data yet"
+        secondaryText="Have team members open the My Achievements tab first to generate their data."
+        imageAltText="No data"
+        imagePath=""
+      />
     );
   }
 
-  const rankLabel = (rank: number) => {
-    if (rank === 1) return <span className="rank-badge gold">🥇</span>;
-    if (rank === 2) return <span className="rank-badge silver">🥈</span>;
-    if (rank === 3) return <span className="rank-badge bronze">🥉</span>;
-    return <span className="rank-badge">#{rank}</span>;
-  };
+  const itemProvider = new ArrayItemProvider(members);
 
-  const earnedIcons = (achievements: EarnedAchievement[]) =>
-    achievements
-      .map((e) => ACHIEVEMENTS.find((a) => a.id === e.achievementId)?.icon ?? "🏅")
-      .join(" ");
+  const columns: ITableColumn<TeamMember>[] = [
+    {
+      id: "rank",
+      name: "Rank",
+      width: 80,
+      columnLayout: TableColumnLayout.none,
+      renderCell: (rowIndex, columnIndex, tableColumn, tableItem) =>
+        rankCell(rowIndex, columnIndex, tableColumn, tableItem, itemProvider),
+    },
+    {
+      id: "displayName",
+      name: "Member",
+      width: -30,
+      columnLayout: TableColumnLayout.none,
+      renderCell: (rowIndex, columnIndex, tableColumn, tableItem) => (
+        <SimpleTableCell
+          key={`name-${tableItem.id}`}
+          columnIndex={columnIndex}
+          tableColumn={tableColumn}
+        >
+          {tableItem.displayName}
+        </SimpleTableCell>
+      ),
+    },
+    {
+      id: "count",
+      name: "Achievements",
+      width: 140,
+      columnLayout: TableColumnLayout.none,
+      renderCell: (rowIndex, columnIndex, tableColumn, tableItem) => (
+        <SimpleTableCell
+          key={`count-${tableItem.id}`}
+          columnIndex={columnIndex}
+          tableColumn={tableColumn}
+        >
+          {tableItem.achievements.length} / {ACHIEVEMENTS.length}
+        </SimpleTableCell>
+      ),
+    },
+    {
+      id: "badges",
+      name: "Badges",
+      width: -70,
+      columnLayout: TableColumnLayout.none,
+      renderCell: badgesCell,
+    },
+  ];
 
   return (
     <>
-      <div className="toolbar">
-        <span className="toolbar__subtitle">
-          {members.length} team member{members.length !== 1 ? "s" : ""} · showing cached achievements
-        </span>
+      <div className="body-m secondary-text" style={{ marginBottom: 12 }}>
+        {members.length} team member{members.length !== 1 ? "s" : ""} · showing cached achievements
       </div>
-
-      {members.length === 0 ? (
-        <div className="status-box">
-          <span style={{ fontSize: "2rem" }}>👥</span>
-          <p>
-            No achievement data yet. Have team members open the{" "}
-            <strong>My Achievements</strong> tab first to generate their data.
-          </p>
-        </div>
-      ) : (
-        <table className="ado-table">
-          <thead>
-            <tr>
-              <th style={{ width: 64 }}>Rank</th>
-              <th>Member</th>
-              <th style={{ width: 160 }}>Achievements</th>
-              <th>Badges</th>
-            </tr>
-          </thead>
-          <tbody>
-            {members.map((member, idx) => (
-              <tr key={member.id}>
-                <td>{rankLabel(idx + 1)}</td>
-                <td>{member.displayName}</td>
-                <td>
-                  {member.achievements.length} / {ACHIEVEMENTS.length}
-                </td>
-                <td style={{ fontSize: "1.15rem", letterSpacing: "2px" }}>
-                  {earnedIcons(member.achievements) || "—"}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <Table<TeamMember>
+        columns={columns}
+        itemProvider={itemProvider}
+        role="table"
+        ariaLabel="Team achievements leaderboard"
+      />
     </>
   );
 };
+

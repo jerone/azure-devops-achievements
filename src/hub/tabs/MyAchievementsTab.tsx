@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import * as SDK from "azure-devops-extension-sdk";
-import {
-  ACHIEVEMENTS,
-} from "../../achievements/achievements";
+import { Button } from "azure-devops-ui/Button";
+import { Card } from "azure-devops-ui/Card";
+import { TitleSize } from "azure-devops-ui/Header";
+import { MessageCard, MessageCardSeverity } from "azure-devops-ui/MessageCard";
+import { Spinner, SpinnerSize } from "azure-devops-ui/Spinner";
+import { ACHIEVEMENTS } from "../../achievements/achievements";
 import { serializeError } from "../../achievements/serializeError";
 import { EarnedAchievement } from "../../achievements/models/EarnedAchievement";
 import { Achievement } from "../../achievements/models/Achievement";
@@ -64,22 +67,20 @@ export const MyAchievementsTab: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="status-box">
-        <span className="spinner">⏳</span>
-        <p>Loading achievements…</p>
+      <div className="flex-row justify-center" style={{ padding: 40 }}>
+        <Spinner size={SpinnerSize.large} label="Loading achievements…" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="status-box">
-        <span className="error-icon">⚠️</span>
-        <p>{error}</p>
-        <button className="btn btn--primary" onClick={handleRefresh}>
-          Retry
-        </button>
-      </div>
+      <>
+        <MessageCard severity={MessageCardSeverity.Error}>{error}</MessageCard>
+        <div style={{ marginTop: 12 }}>
+          <Button text="Retry" primary onClick={handleRefresh} />
+        </div>
+      </>
     );
   }
 
@@ -87,18 +88,17 @@ export const MyAchievementsTab: React.FC = () => {
 
   return (
     <>
-      <div className="toolbar">
-        <span className="toolbar__subtitle">
-          {userName && <strong>{userName} · </strong>}
+      <div className="flex-row flex-center justify-space-between" style={{ marginBottom: 16 }}>
+        <span className="body-m secondary-text">
+          {userName && <strong className="primary-text">{userName} · </strong>}
           {earned.length} of {ACHIEVEMENTS.length} achievements unlocked
         </span>
-        <button
-          className="btn"
-          onClick={handleRefresh}
+        <Button
+          text={refreshing ? "Refreshing…" : "Refresh"}
+          iconProps={{ iconName: "Refresh" }}
           disabled={refreshing}
-        >
-          {refreshing ? "Refreshing…" : "↺ Refresh"}
-        </button>
+          onClick={handleRefresh}
+        />
       </div>
 
       <div className="badge-grid">
@@ -108,26 +108,27 @@ export const MyAchievementsTab: React.FC = () => {
           const tierEmoji = getTierEmoji(achievement, earnedEntry);
 
           return (
-            <div
+            <Card
               key={achievement.id}
-              className={`badge-card${isEarned ? "" : " locked"}`}
-              title={
-                isEarned
-                  ? `Earned on ${new Date(earnedEntry!.earnedAt).toLocaleDateString()}`
-                  : "Not yet earned"
-              }
+              className={`bolt-card-white badge-card${isEarned ? "" : " badge-card--locked"}`}
+              titleProps={{
+                text: achievement.name,
+                size: TitleSize.Small,
+              }}
             >
-              {tierEmoji && <span className="badge-tier">{tierEmoji}</span>}
-              <div className="badge-icon">{achievement.icon}</div>
-              <div className="badge-name">{achievement.name}</div>
-              <div className="badge-desc">{achievement.description}</div>
-              {isEarned && earnedEntry!.value > 1 && (
-                <div className="badge-value">× {earnedEntry!.value}</div>
-              )}
-            </div>
+              <div className="badge-card__body">
+                {tierEmoji && <span className="badge-tier">{tierEmoji}</span>}
+                <div className="badge-icon">{achievement.icon}</div>
+                <div className="body-s secondary-text badge-desc">{achievement.description}</div>
+                {isEarned && earnedEntry.value > 1 && (
+                  <div className="body-s badge-value">× {earnedEntry.value}</div>
+                )}
+              </div>
+            </Card>
           );
         })}
       </div>
     </>
   );
 };
+

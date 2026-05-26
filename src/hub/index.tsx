@@ -1,6 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import * as SDK from "azure-devops-extension-sdk";
+import "azure-devops-ui/Core/override.css";
+import "./styles.css";
 import { AchievementsHub } from "./AchievementsHub";
 
 try {

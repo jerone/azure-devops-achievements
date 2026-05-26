@@ -1,54 +1,35 @@
 import React, { useState } from "react";
+import { Page } from "azure-devops-ui/Page";
+import { Header, TitleSize } from "azure-devops-ui/Header";
+import { Tab, TabBar, TabSize } from "azure-devops-ui/Tabs";
 import { MyAchievementsTab } from "./tabs/MyAchievementsTab";
 import { MyTeamTab } from "./tabs/MyTeamTab";
-import "../achievements/styles.css";
 
 type TabId = "my-achievements" | "my-team";
 
-interface Tab {
-  id: TabId;
-  label: string;
-  icon: string;
-}
-
-const TABS: Tab[] = [
-  { id: "my-achievements", label: "My Achievements", icon: "🏅" },
-  { id: "my-team",         label: "My Team",         icon: "👥" },
-];
-
 export const AchievementsHub: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<TabId>("my-achievements");
+  const [selectedTabId, setSelectedTabId] = useState<TabId>("my-achievements");
 
   return (
-    <div className="hub-shell">
-      {/* ── Header ────────────────────────────────────────────────────── */}
-      <div className="hub-header">
-        <div className="hub-title-row">
-          <span style={{ fontSize: "1.4rem" }}>🏆</span>
-          <h1>Achievements</h1>
-        </div>
+    <Page className="flex-grow">
+      <Header
+        title="Achievements"
+        titleSize={TitleSize.Large}
+      />
+      <TabBar
+        selectedTabId={selectedTabId}
+        onSelectedTabChanged={(newTabId: string) => setSelectedTabId(newTabId as TabId)}
+        tabSize={TabSize.Tall}
+      >
+        <Tab id="my-achievements" name="My Achievements" />
+        <Tab id="my-team"         name="My Team" />
+      </TabBar>
 
-        {/* ── Tab bar ───────────────────────────────────────────────── */}
-        <ul className="tab-bar" role="tablist">
-          {TABS.map((tab) => (
-            <li
-              key={tab.id}
-              role="tab"
-              aria-selected={activeTab === tab.id}
-              className={`tab-bar__item${activeTab === tab.id ? " active" : ""}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.icon}&nbsp;&nbsp;{tab.label}
-            </li>
-          ))}
-        </ul>
+      <div className="page-content page-content-top">
+        {selectedTabId === "my-achievements" && <MyAchievementsTab />}
+        {selectedTabId === "my-team"         && <MyTeamTab />}
       </div>
-
-      {/* ── Tab content ───────────────────────────────────────────────── */}
-      <div className="hub-content" role="tabpanel">
-        {activeTab === "my-achievements" && <MyAchievementsTab />}
-        {activeTab === "my-team"         && <MyTeamTab />}
-      </div>
-    </div>
+    </Page>
   );
 };
+
