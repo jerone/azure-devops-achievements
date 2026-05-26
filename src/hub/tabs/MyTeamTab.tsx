@@ -8,9 +8,9 @@ import {
 import { CoreRestClient } from "azure-devops-extension-api/Core";
 import {
   ACHIEVEMENTS,
-  EarnedAchievement,
-  serializeError,
-} from "../../achievements/definitions";
+} from "../../achievements/achievements";
+import { serializeError } from "../../achievements/serializeError";
+import { EarnedAchievement } from "../../achievements/models/EarnedAchievement";
 import {
   loadCachedAchievements,
   refreshAchievements,

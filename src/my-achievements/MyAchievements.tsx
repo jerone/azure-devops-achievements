@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
 import * as SDK from "azure-devops-extension-sdk";
-import { ACHIEVEMENTS, Achievement, EarnedAchievement, serializeError } from "../achievements/definitions";
+import { ACHIEVEMENTS } from "../achievements/achievements";
+import { serializeError } from "../achievements/serializeError";
+import { EarnedAchievement } from "../achievements/models/EarnedAchievement";
+import { Achievement } from "../achievements/models/Achievement";
 import {
   refreshAchievements,
   loadCachedAchievements,
 } from "../achievements/evaluator";
-import "../achievements/styles.css";
+import "../achievements/styles.css"; 
 
 function getTierEmoji(achievement: Achievement, earned: EarnedAchievement | undefined): string | undefined {
   if (!earned || !achievement.tiers) return undefined;
@@ -33,7 +36,7 @@ export const MyAchievements: React.FC = () => {
           setEarned(cached);
           setLoading(false);
         } else {
-          // No cache – do a full refresh
+          // No cache - do a full refresh
           const fresh = await refreshAchievements();
           setEarned(fresh);
           setLoading(false);
@@ -99,14 +102,14 @@ export const MyAchievements: React.FC = () => {
             <div
               key={achievement.id}
               className={`badge-card ${isEarned ? "earned" : "locked"}`}
-              title={isEarned ? `Earned on ${new Date(earnedEntry!.earnedAt).toLocaleDateString()}` : "Not yet earned"}
+              title={isEarned ? `Earned on ${new Date(earnedEntry.earnedAt).toLocaleDateString()}` : "Not yet earned"}
             >
               {tierEmoji && <span className="badge-tier">{tierEmoji}</span>}
               <div className="badge-icon">{achievement.icon}</div>
               <div className="badge-name">{achievement.name}</div>
               <div className="badge-desc">{achievement.description}</div>
-              {isEarned && earnedEntry!.value > 1 && (
-                <div className="badge-value">× {earnedEntry!.value}</div>
+              {isEarned && earnedEntry.value > 1 && (
+                <div className="badge-value">× {earnedEntry.value}</div>
               )}
             </div>
           );

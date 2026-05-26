@@ -6,7 +6,9 @@ import {
   IProjectPageService,
 } from "azure-devops-extension-api";
 import { CoreRestClient } from "azure-devops-extension-api/Core";
-import { ACHIEVEMENTS, EarnedAchievement, serializeError } from "../achievements/definitions";
+import { ACHIEVEMENTS } from "../achievements/achievements";
+import { serializeError } from "../achievements/serializeError";
+import { EarnedAchievement } from "../achievements/models/EarnedAchievement";
 import { loadCachedAchievements, refreshAchievements } from "../achievements/evaluator";
 import "../achievements/styles.css";
 
@@ -45,7 +47,7 @@ export const TeamLeaderboard: React.FC = () => {
         for (const team of teams) {
           const teamMembers = await core.getTeamMembersWithExtendedProperties(
             projectId,
-            team.id!,
+            team.id,
             100
           );
           for (const tm of teamMembers) {

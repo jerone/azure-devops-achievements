@@ -2,10 +2,10 @@ import React, { useEffect, useState } from "react";
 import * as SDK from "azure-devops-extension-sdk";
 import {
   ACHIEVEMENTS,
-  Achievement,
-  EarnedAchievement,
-  serializeError,
-} from "../../achievements/definitions";
+} from "../../achievements/achievements";
+import { serializeError } from "../../achievements/serializeError";
+import { EarnedAchievement } from "../../achievements/models/EarnedAchievement";
+import { Achievement } from "../../achievements/models/Achievement";
 import {
   refreshAchievements,
   loadCachedAchievements,

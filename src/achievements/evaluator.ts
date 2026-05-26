@@ -4,27 +4,13 @@ import {
   CommonServiceIds,
   IProjectPageService,
 } from "azure-devops-extension-api";
-import { GitRestClient, GitPullRequestSearchCriteria } from "azure-devops-extension-api/Git";
+import { GitRestClient, GitPullRequestSearchCriteria, PullRequestStatus } from "azure-devops-extension-api/Git";
 import { WorkItemTrackingRestClient } from "azure-devops-extension-api/WorkItemTracking";
 import { BuildRestClient } from "azure-devops-extension-api/Build";
 import { TestRestClient } from "azure-devops-extension-api/Test";
-import { ACHIEVEMENTS, EarnedAchievement } from "./definitions";
-
-/** Metrics gathered from the ADO REST APIs for a single user */
-interface UserMetrics {
-  mergedPRs: number;
-  prReviews: number;
-  yoloPRs: number; // merged with no required reviewers
-  quickdrawItems: number; // work items closed <5 min after creation
-  bugsFixed: number;
-  successfulBuilds: number;
-  hasPipelineRun: boolean;
-  hasSprintCompletion: boolean;
-  hasWorkItem: boolean;
-  hasPairCommit: boolean;
-  prComments: number;
-  passingTestRuns: number;
-}
+import { ACHIEVEMENTS } from "./achievements";
+import { EarnedAchievement } from "./models/EarnedAchievement";
+import { UserMetrics } from "./models/UserMetrics";
 
 async function getProjectId(): Promise<string> {
   const projectService = await SDK.getService<IProjectPageService>(
@@ -72,7 +58,7 @@ export async function gatherMetrics(
       // PRs created by this user that are completed (merged)
       const prs = await git.getPullRequests(repo.id, {
         creatorId: userId,
-        status: 3, // Completed
+        status: PullRequestStatus.Completed,
       } as GitPullRequestSearchCriteria);
       totalMerged += prs.length;
 
@@ -97,7 +83,7 @@ export async function gatherMetrics(
       // PR reviews by this user
       const reviewed = await git.getPullRequests(repo.id, {
         reviewerId: userId,
-        status: 3,
+        status: PullRequestStatus.Completed,
       } as GitPullRequestSearchCriteria);
       totalReviews += reviewed.length;
 
@@ -136,7 +122,7 @@ export async function gatherMetrics(
     const batchSize = 200;
     for (let i = 0; i < workItemRefs.length; i += batchSize) {
       const batch = workItemRefs.slice(i, i + batchSize);
-      const ids = batch.map((w) => w.id!);
+      const ids = batch.map((w) => w.id);
       const items = await wit.getWorkItems(ids, projectId, [
         "System.WorkItemType",
         "System.State",

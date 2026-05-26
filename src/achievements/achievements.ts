@@ -1,12 +1,4 @@
-export interface Achievement {
-  id: string;
-  name: string;
-  description: string;
-  /** Emoji icon used as a fallback badge */
-  icon: string;
-  /** Optional tier thresholds: key = tier label, value = count required */
-  tiers?: { label: string; emoji: string; threshold: number }[];
-}
+import { Achievement } from "./models/Achievement";
 
 /** All available achievements in the extension */
 export const ACHIEVEMENTS: Achievement[] = [
@@ -114,30 +106,4 @@ export const ACHIEVEMENTS: Achievement[] = [
   },
 ];
 
-export interface EarnedAchievement {
-  achievementId: string;
-  earnedAt: string;
-  /** Current value (e.g. number of PRs merged), used for tiered achievements */
-  value: number;
-  /** The highest tier unlocked, if applicable */
-  currentTier?: string;
-}
 
-/**
- * Safely converts any thrown value to a readable string.
- * The ADO SDK and REST clients sometimes throw plain objects rather than Error instances.
- */
-export function serializeError(err: unknown): string {
-  if (err == null) return "Unknown error";
-  if (typeof err === "string") return err;
-  if (err instanceof Error) return err.message || err.toString();
-  try {
-    // Plain objects from the ADO REST client often look like { status, message, ... }
-    const obj = err as Record<string, unknown>;
-    if (typeof obj.message === "string") return obj.message;
-    if (typeof obj.responseText === "string") return obj.responseText;
-    return JSON.stringify(err);
-  } catch {
-    return Object.prototype.toString.call(err);
-  }
-}
