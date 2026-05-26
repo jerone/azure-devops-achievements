@@ -7,6 +7,7 @@ import {
 } from "azure-devops-extension-api";
 import { CoreRestClient } from "azure-devops-extension-api/Core";
 import { MessageCard, MessageCardSeverity } from "azure-devops-ui/MessageCard";
+import { Card } from "azure-devops-ui/Card";
 import { Spinner, SpinnerSize } from "azure-devops-ui/Spinner";
 import { VssPersona } from "azure-devops-ui/VssPersona";
 import { ZeroData } from "azure-devops-ui/ZeroData";
@@ -212,17 +213,21 @@ export const MyTeamTab: React.FC = () => {
   ];
 
   return (
-    <>
-      <div className="body-m secondary-text" style={{ marginBottom: 12 }}>
-        {members.length} team member{members.length !== 1 ? "s" : ""} · showing cached achievements
-      </div>
+    <Card 
+      contentProps={{ contentPadding: false }}
+      className="bolt-card-white"
+      titleProps={{
+        text: `${members.length} team member${members.length !== 1 ? "s" : ""} · showing cached achievements`,
+        className: "body-m",
+      }}
+      >
       <Table<TeamMember>
         columns={columns}
         itemProvider={itemProvider}
         role="table"
         ariaLabel="Team achievements leaderboard"
       />
-    </>
+    </Card>
   );
 };
 
