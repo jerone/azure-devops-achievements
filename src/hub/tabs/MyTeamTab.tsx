@@ -11,6 +11,7 @@ import { Card } from "azure-devops-ui/Card";
 import { Spinner, SpinnerSize } from "azure-devops-ui/Spinner";
 import { VssPersona } from "azure-devops-ui/VssPersona";
 import { ZeroData } from "azure-devops-ui/ZeroData";
+import { Pill, PillSize, PillVariant } from "azure-devops-ui/Pill";
 import {
   Table,
   ITableColumn,
@@ -26,6 +27,7 @@ import {
   loadCachedAchievements,
   refreshAchievements,
 } from "../../achievements/evaluator";
+import { IHeaderCommandBarItem } from "azure-devops-ui/HeaderCommandBar";
 
 interface TeamMember {
   id: string;
@@ -39,10 +41,11 @@ function rankCell(
   columnIndex: number,
   tableColumn: ITableColumn<TeamMember>,
   tableItem: TeamMember,
-  itemProvider: ArrayItemProvider<TeamMember>
+  itemProvider: ArrayItemProvider<TeamMember>,
 ): JSX.Element {
   const rank = (itemProvider as any).value.indexOf(tableItem) + 1;
-  const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `#${rank}`;
+  const medal =
+    rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `#${rank}`;
   return (
     <SimpleTableCell
       key={`rank-${tableItem.id}`}
@@ -58,10 +61,12 @@ function badgesCell(
   _rowIndex: number,
   columnIndex: number,
   tableColumn: ITableColumn<TeamMember>,
-  tableItem: TeamMember
+  tableItem: TeamMember,
 ): JSX.Element {
   const icons = tableItem.achievements
-    .map((e) => ACHIEVEMENTS.find((a) => a.id === e.achievementId)?.icon ?? "🏅")
+    .map(
+      (e) => ACHIEVEMENTS.find((a) => a.id === e.achievementId)?.icon ?? "🏅",
+    )
     .join(" ");
   return (
     <SimpleTableCell
@@ -69,10 +74,25 @@ function badgesCell(
       columnIndex={columnIndex}
       tableColumn={tableColumn}
     >
-      <span style={{ fontSize: "1.1rem", letterSpacing: 2 }}>{icons || "—"}</span>
+      <span style={{ fontSize: "1.1rem", letterSpacing: 2 }}>
+        {icons || "—"}
+      </span>
     </SimpleTableCell>
   );
 }
+
+const commandBarItems: IHeaderCommandBarItem[] = [
+  {
+    id: "testDownload",
+    text: "Download",
+    onActivate: () => {
+      alert("Example text");
+    },
+    iconProps: {
+      iconName: "Download",
+    },
+  },
+];
 
 export const MyTeamTab: React.FC = () => {
   const [members, setMembers] = useState<TeamMember[]>([]);
@@ -89,7 +109,7 @@ export const MyTeamTab: React.FC = () => {
 
         const core = getClient(CoreRestClient);
         const projectService = await SDK.getService<IProjectPageService>(
-          CommonServiceIds.ProjectPageService
+          CommonServiceIds.ProjectPageService,
         );
         const project = await projectService.getProject();
         const projectId = project?.id ?? "";
@@ -102,7 +122,7 @@ export const MyTeamTab: React.FC = () => {
           const teamMembers = await core.getTeamMembersWithExtendedProperties(
             projectId,
             team.id,
-            100
+            100,
           );
           for (const tm of teamMembers) {
             const identity = tm.identity;
@@ -121,7 +141,9 @@ export const MyTeamTab: React.FC = () => {
           }
         }
 
-        memberData.sort((a, b) => b.achievements.length - a.achievements.length);
+        memberData.sort(
+          (a, b) => b.achievements.length - a.achievements.length,
+        );
         setMembers(memberData);
       } catch (err) {
         setError(serializeError(err));
@@ -140,7 +162,9 @@ export const MyTeamTab: React.FC = () => {
   }
 
   if (error) {
-    return <MessageCard severity={MessageCardSeverity.Error}>{error}</MessageCard>;
+    return (
+      <MessageCard severity={MessageCardSeverity.Error}>{error}</MessageCard>
+    );
   }
 
   if (members.length === 0) {
@@ -193,7 +217,7 @@ export const MyTeamTab: React.FC = () => {
       name: "Achievements",
       width: 140,
       columnLayout: TableColumnLayout.none,
-      renderCell: (rowIndex, columnIndex, tableColumn, tableItem) => (
+      renderCell: (_rowIndex, columnIndex, tableColumn, tableItem) => (
         <SimpleTableCell
           key={`count-${tableItem.id}`}
           columnIndex={columnIndex}
@@ -213,14 +237,25 @@ export const MyTeamTab: React.FC = () => {
   ];
 
   return (
-    <Card 
-      contentProps={{ contentPadding: false }}
-      className="bolt-card-white"
-      titleProps={{
-        text: `${members.length} team member${members.length !== 1 ? "s" : ""} · showing cached achievements`,
+    <Card
+      className="bolt-card-white bolt-table-card"
+      headerCommandBarItems={commandBarItems}
+      headerDescriptionProps={{
+        text: (
+          <div className="flex-row flex-center font-size-m">
+            <span>Members</span>
+            <Pill
+              size={PillSize.compact}
+              containsCount={true}
+              className="margin-left-4"
+            >
+              {members.length}
+            </Pill>
+          </div>
+        ),
         className: "body-m",
       }}
-      >
+    >
       <Table<TeamMember>
         columns={columns}
         itemProvider={itemProvider}
@@ -230,4 +265,3 @@ export const MyTeamTab: React.FC = () => {
     </Card>
   );
 };
-
